@@ -1,0 +1,77 @@
+td {
+  font-size: 1.0rem;
+}
+
+@include media-breakpoint-up(sm) {
+  td {
+    font-size: 1.2rem;
+  }
+}
+
+.table {
+  max-height: 650px;
+  display: table;
+}
+
+.table-container {
+  overflow: scroll;
+  max-height: 770px;
+}
+
+.table-fixed thead th {
+    position: sticky;
+    position: -webkit-sticky;
+    top: 0;
+}
+
+#info-table {
+  display: none;
+}
+
+#info-table td:last-child {
+  width: 100%;
+}
+
+#info-table td:first-child {
+  min-width:
+}
+
+.info-display {
+  overflow: scroll;
+}
+
+.ship-to .jumbotron {
+  padding-top: 1em;
+  padding-bottom: 1em;
+}
+
+#table tr {
+  cursor: pointer;
+}
+
+.toast {
+  position: fixed;
+  bottom: 50px;
+  right: 50px;
+}
+
+.spare-s {
+  display: none;
+}
+
+div div.badge.badge-dark {
+  max-width: 120%;
+  overflow: hidden;
+}
+
+.pagination a {
+  background: white;
+}
+
+.pagination a:hover {
+  background: white;
+}
+
+.tracking {
+  font-family: "Consolas"
+}

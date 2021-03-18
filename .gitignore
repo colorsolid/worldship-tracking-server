@@ -1,0 +1,9 @@
+*.sqlite3
+log.txt
+*.csv
+*.bak
+__pycache__/
+env/
+migrations/
+.env
+mailer.py

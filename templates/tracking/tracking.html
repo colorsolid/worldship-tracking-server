@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+
+{% load static %}
+
+{% load tags %}
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link href="{% static "tracking/tracking.css" %}" rel="stylesheet">
+    <link href="{% static "tracking/bootstrap-datepicker.min.css" %}" rel="stylesheet" type="text/css">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="{% static "tracking/bootstrap-datepicker.min.js" %}" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <title>UPS Tracking</title>
+  </head>
+  <body class="text-center">
+    <div id="main" class="container-fluid mt-3">
+      <div class="row">
+        <div class="col-xl-12">
+          <h3>UPS Tracking</h3>
+        </div>
+      </div>
+      <form action="/" method="post">
+        {% csrf_token %}
+        {{ filter_form.previous_sort }}
+        <div class="row">
+          <div class="col-xl-2"></div>
+          <div class="col-xl-8 input-group">
+            {{ filter_form.search_term }}
+            <div class="input-group-append">
+              <input class="btn-clear btn btn-outline-secondary" type="button" value="Clear">
+            </div>
+            <div class="input-group-append">
+              <input class="btn btn-primary" type="submit" value="Search">
+            </div>
+          </div>
+        </div>
+        <div class="form-row align-items-end mb-3">
+          <div class="col-auto">
+            {% if shipments.has_other_pages %}
+            <ul class="pagination mb-0">
+              {% if shipments.has_previous %}
+              <li><a title="Previous page" class="btn btn-dark text-dark" href="?page={{ shipments.previous_page_number }}&sort_by={{ sort_method }}&per_page={{ per_page }}{% if request.GET.search_term %}&search_term={{ request.GET.search_term }}{% endif %}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}">&laquo;</a></li>
+              {% else %}
+              <li class="btn disabled"><span>&laquo;</span></li>
+              {% endif %}
+              {% if shipments.has_next %}
+              <li><a title="Next page" class="ml-1 btn btn-dark text-dark" href="?page={{ shipments.next_page_number }}&sort_by={{ sort_method }}&per_page={{ per_page }}{% if request.GET.search_term %}&search_term={{ request.GET.search_term }}{% endif %}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}">&raquo;</a></li>
+              {% else %}
+              <li class="btn disabled"><span>&raquo;</span></li>
+              {% endif %}
+            </ul>
+            {% endif %}
+          </div>
+          <div class="col-auto">
+            {{ filter_form.page_number.label_tag }}
+            {{ filter_form.page_number }}
+          </div>
+          <div class="col-auto">
+            {{ filter_form.results_per_page.label_tag }}
+            {{ filter_form.results_per_page }}
+          </div>
+          <div class="col-auto">
+            {{ filter_form.sort_method.label_tag }}
+            {{ filter_form.sort_method }}
+          </div>
+          <div class="col-auto">
+            <label for="start-date-input">Date range:</label>
+            {{ filter_form.start_date }}
+          </div>
+          <div class="col-auto">
+            {{ filter_form.end_date }}
+          </div>
+          <div class="col-auto">
+            <input id="btn-clear-dates" class="form-control btn btn-outline-secondary" type="button" value="Clear dates">
+          </div>
+          <div class="col-auto">
+            <input id="btn-form-submit" class="form-control btn btn-primary" type="submit" value="Go">
+          </div>
+        </div>
+      </form>
+      <div class="row">
+        <div class="col-xl-6">
+          <div class="table-container table-responsive">
+            <table id="table" class="table table-bordered table-striped table-fixed table-hover">
+              <thead class="thead-dark" id="thead">
+                <tr>
+                  <th scope="col">Ship Date</th>
+                  <th scope="col">Customer</th>
+                </tr>
+              </thead>
+              <tbody id="l-tbody">
+                {% for shipment in shipments %}
+                  <tr onclick="display_shipment(this)" class="shipment-tr" data-id="{{ shipment.id }}">
+                    <td>
+                      {{ shipment.ship_date|timestamp }}
+                    </td>
+                    <td>
+                      {{ shipment.company_name }}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="col-xl-6">
+          <div class="info-display_shipmentcontainer-fluid">
+            <div class="ship-info pt-3 pb-3 lead p-2 bg-secondary text-light">
+              {% for shipment in shipments %}
+                <div class="shipment shipment-{{ shipment.id }} d-none">
+                  <div class="ship-to">
+                    <div class="jumbotron text-dark text-left">
+                    <h4>{{ shipment.company_name }}</h4>
+                    {{ shipment.attention|blank }}
+                    <br>
+                    {{ shipment.address1 }}
+                    {{ shipment.address2|blank }}
+                    <br>
+                    {{ shipment.city }}, {{ shipment.state }} {{ shipment.zip_code }}
+                    </div>
+                  </div>
+                  <div class="gen-info">
+                    <div class="row">
+                      <div class="col-xl-3 text-xl-right text-m-center">
+                        <div class="small d-inline text-dark">Ship date: </div>
+                      </div>
+                      <div class="col-xl-3 text-xl-left text-m-center">
+                        <div class="badge mt-2">{{ shipment.ship_date|timestamp }}</div>
+                      </div>
+                      <div class="col-xl-3 text-xl-right text-m-center">
+                        <div class="small d-inline text-dark">Estimated delivery: </div>
+                      </div>
+                      <div class="col-xl-3 text-xl-left text-m-center">
+                        <div class="badge mt-2">{{ shipment.estimated_delivery_date|timestamp }}</div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-xl-3 text-xl-right text-m-center">
+                        <div class="small d-inline text-dark">Service type: </div>
+                      </div>
+                      <div class="col-xl-3 text-xl-left text-m-center">
+                        <div class="badge mt-2">{{ shipment.service_type }}</div>
+                      </div>
+                      <div class="col-xl-3 text-xl-right text-m-center">
+                        <div class="small d-inline text-dark">{{ shipment.charges|equals:"0.00,Bill to,Charges" }}: </div>
+                      </div>
+                      <div class="col-xl-3 text-xl-left text-m-center">
+                        <div class="badge mt-2">{% if shipment.charges == "0.00" %}{{ shipment.customer_account_number }}{% else %}${{ shipment.charges }}{% endif %}</div>
+                      </div>
+                    </div>
+                    {% if shipment.saturday_delivery_flag == 'Y' %}
+                      <div class="row">
+                        <div class="col-xl-3 text-xl-right text-m-center">
+                          <div class="small d-inline text-dark">Saturday delivery: </div>
+                        </div>
+                        <div class="col-xl-3 text-xl-left text-m-center">
+                          <div class="badge mt-2">{{ shipment.saturday_delivery_flag }}</div>
+                        </div>
+                      </div>
+                    {% endif %}
+                    {% if shipment.get_references %}
+                      <div class="row">
+                        <div class="col-xl-3 text-xl-right text-m-center">
+                          <div class="small d-inline text-dark">References: </div>
+                        </div>
+                        <div class="col-xl-9 text-xl-left text-m-center">
+                          <div class="badge mt-2">{{ shipment.get_references|join:"</div>,<div class=\"badge ml-2 mt-2\">" }}</div>
+                        </div>
+                      </div>
+                    {% endif %}
+                    <div class="row border-top pt-1">
+                    </div>
+                    <h5>This shipment has {{ shipment.package_count }} package{{ shipment.package_count|pluralize }}</h5>
+                    <table class="table table-dark table-striped table-fixed table-hover">
+                      <tbody id="l-tbody">
+                          <tr>
+                            <td>Tracking number{{ shipment.package_count|pluralize }}</td>
+                            {% if shipment.package_count > 1 %}
+                              <td>
+                                <a target="_blank" href="http://wwwapps.ups.com/WebTracking/track?track=yes&trackNums={{ shipment.get_tracking_numbers|join:"%0D%0A" }}" class="btn btn-block btn-warning font-weight-bold" role="button">Track all packages</a>
+                              </td>
+                              <td>
+                                <button onclick="copy_all({{ shipment.get_tracking_numbers }})" class="btn btn-block btn-warning font-weight-bold" role="button">Copy all tracking numbers</button>
+                              </td>
+                            {% else %}
+                              <td></td>
+                              <td></td>
+                            {% endif %}
+                          </tr>
+                        {% for package in shipment.package_set.all %}
+                              <tr>
+                                <td class="text-light tracking">
+                                  {{ forloop.counter }}. {{ package.tracking_number }}
+                                </td>
+                                <td>
+                                  <a target="_blank" role="button" class="btn-tracking btn btn-block btn-warning font-weight-bold" href="http://wwwapps.ups.com/WebTracking/track?track=yes&trackNums={{ package.tracking_number }}">Track this package</a>
+                                </td>
+                                <td>
+                                  <button onclick="copy(this.value)" value="{{ package.tracking_number }}" class="btn btn-block btn-warning font-weight-bold">Copy this tracking number</button>
+                                </td>
+                              </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+            <div id="message" class="p-5 border">
+              Select a shipment from the list
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="toast ml-auto" role="alert" data-delay="4000">
+        <div class="toast-header">
+          <strong class="mr-auto text-primary">Tracking number<span class="spare-s">s</span> copied</strong>
+          <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <div class="toast-body"></div>
+      </div>
+    </div>
+    <script src="{% static "tracking/tracking.js" %}"></script>
+  </body>
+</html>
